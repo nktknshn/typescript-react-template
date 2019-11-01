@@ -1,10 +1,11 @@
 import { DirectionRow } from 'Components/styled-common'
 import React, { useState } from 'react'
-import { Search as SearchIcon } from 'styled-icons/fa-solid/Search'
+import { KeyboardReturn as ButtonIcon } from 'styled-icons/material/KeyboardReturn'
 import styled from 'Styles'
-import { Option, fold, some } from 'fp-ts/lib/Option'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { AppError } from 'Store/app/types'
+import { Either, fold, left, right } from 'fp-ts/lib/Either'
+import { InputValidator } from 'Modules/types'
 
 const InputContainer = styled(DirectionRow)`
 color: ${props => props.theme.textMainColor};
@@ -24,7 +25,7 @@ background-color: inherit;
 font-size: inherit;
 `
 
-const SearchButton = styled(SearchIcon)`
+const Button = styled(ButtonIcon)`
 cursor: pointer;
 width: 5%;
 margin: 1% 12px 1% 12px;
@@ -33,24 +34,21 @@ color: ${props => props.theme.textMainColor};
 
 type Props = {
   placeholder?: string;
-  validateValue?: (value: string) => Option<string>;
+  validator?: InputValidator;
   onSubmit: (value: string) => void;
   onError: (error: AppError) => void
 }
 
-export const InputWithButton: React.FC<Props> = ({ placeholder = "", validateValue, onError, onSubmit }) => {
+export const InputWithButton: React.FC<Props> = ({ placeholder = "", validator, onError, onSubmit }) => {
 
   const [value, setValue] = useState("")
 
   const handleSubmit = () => 
   pipe(
-    validateValue ? validateValue(value) : some(value),
+    validator ? validator(value) : right(value),
     fold(
-      () => {
-        onError({
-          name: "Invalid input",
-          message: "Check the input"
-        })
+      (message) => {
+        onError({ name: "Invalid input", message })
       },
       (value) => { onSubmit(value) }
     ))
@@ -64,8 +62,7 @@ export const InputWithButton: React.FC<Props> = ({ placeholder = "", validateVal
         onKeyDown={(e) =>
           e.keyCode == 13 && handleSubmit()
         } />
-      <SearchButton onClick={handleSubmit}>
-      </SearchButton>
+      <Button onClick={handleSubmit} />
     </InputContainer>
   )
 

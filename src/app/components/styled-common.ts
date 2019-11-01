@@ -21,7 +21,6 @@ flex-direction: row;
 
 export const Centered = styled(DirectionRow)`
 margin: 0 auto;
-width: 200px; 
 `
 
 export const popupAnimation = keyframes`
